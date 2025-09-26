@@ -1,107 +1,107 @@
-# TypeScript Type Definition Guidelines
+# TypeScript 类型定义指引
 
-## Overview
+## 概述
 
-This document outlines the guidelines for TypeScript type definitions in the MCP Router project. We enforce centralized type management to improve maintainability, reduce duplication, and ensure consistency across the codebase.
+本文档说明 MCP Router 项目中 TypeScript 类型定义的统一规范。通过集中化管理类型，可以提升可维护性、减少重复，并确保代码库各处保持一致。
 
-## Type Definition Locations
+## 类型定义存放位置
 
-### ✅ Allowed Locations
+### ✅ 允许的目录
 
-Types must only be defined in the following directories:
+类型只能定义在以下位置：
 
-1. **`packages/shared/src/types/`** - Primary location for all shared types
-   - Domain types (MCP, Agent, User, etc.)
-   - API types (request/response)
-   - Common UI prop patterns
-   - Store state types
+1. **`packages/shared/src/types/`** —— 共享类型的主目录
+   - 领域类型（MCP、Agent、User 等）
+   - API 类型（请求/响应）
+   - 通用 UI Props 模式
+   - Store 状态类型
 
-2. **`packages/remote-api-types/src/`** - Remote API schema definitions
-   - Zod schemas
-   - Generated types from schemas
+2. **`packages/remote-api-types/src/`** —— 远程 API 模型
+   - Zod schema
+   - 基于 schema 生成的类型
 
-3. **`apps/electron/src/lib/database/schema/`** - Database-specific types
-   - Table schemas
-   - Database entity types
+3. **`apps/electron/src/lib/database/schema/`** —— 数据库相关类型
+   - 数据表结构
+   - 数据库实体类型
 
-4. **`apps/electron/src/lib/platform-api/types/`** - Platform API types
-   - Electron IPC API types
-   - Platform-specific interfaces
+4. **`apps/electron/src/lib/platform-api/types/`** —— 平台 API 类型
+   - Electron IPC API 类型
+   - 平台相关接口定义
 
-5. **`apps/electron/src/frontend/stores/types/`** - Store state types
-   - Frontend store state interfaces
-   - Store-specific types
+5. **`apps/electron/src/frontend/stores/types/`** —— 前端 Store 类型
+   - Store 状态接口
+   - Store 专用类型
 
-6. **Type definition files (`*.d.ts`)** - Global type declarations
+6. **类型声明文件（`*.d.ts`）** —— 全局类型声明
 
-### ❌ Prohibited Locations
+### ❌ 禁止的目录
 
-Types should NOT be defined in:
-- Component files (except for component Props interfaces)
-- Service files
-- Utility files
-- Test files (except for test-specific types)
+以下位置不得新增类型定义：
+- 组件文件（组件 Props 接口除外）
+- Service 文件
+- 工具方法文件
+- 测试文件（仅允许测试专用类型）
 
-## Organization Structure
+## 组织结构建议
 
 ```
 packages/shared/src/types/
-├── domains/          # Domain entities
-│   ├── mcp.ts       # MCP server, tool, resource types
-│   ├── agent.ts     # Agent configuration types
-│   ├── auth.service.ts      # Authentication types
-│   └── workspace.ts # Workspace types
-├── api/             # API-related types
-│   ├── requests.ts  # API request types
-│   ├── responses.ts # API response types
-│   └── errors.ts    # API error types
-├── ui/              # UI component patterns
-│   ├── props.ts     # Common prop interfaces
-│   └── state.ts     # Common state patterns
-├── store/           # Store state types
-│   └── ipc.ts     # Store state interfaces
-└── ipc.ts         # Main export file
+├── domains/          # 领域实体
+│   ├── mcp.ts       # MCP 服务器、工具、资源类型
+│   ├── agent.ts     # Agent 配置类型
+│   ├── auth.service.ts      # 认证相关类型
+│   └── workspace.ts # 工作区类型
+├── api/             # API 相关类型
+│   ├── requests.ts  # API 请求类型
+│   ├── responses.ts # API 响应类型
+│   └── errors.ts    # API 错误类型
+├── ui/              # UI 组件通用模式
+│   ├── props.ts     # 通用 Props 接口
+│   └── state.ts     # 通用状态类型
+├── store/           # Store 状态类型
+│   └── ipc.ts     # Store 状态接口
+└── ipc.ts         # 主导出文件
 ```
 
-## Type Definition Rules
+## 类型定义规则
 
-### 1. Component Props
+### 1. 组件 Props
 
-Component props interfaces are allowed in `.tsx` files but must follow this pattern:
+组件 Props 接口可以写在 `.tsx` 文件中，但需要遵循以下范式：
 
 ```typescript
-// ✅ Allowed
+// ✅ 推荐
 interface MyComponentProps {
   title: string;
   onClose: () => void;
 }
 
-// ❌ Not allowed - use shared UI types for common patterns
+// ❌ 不推荐 —— 通用模式请复用 shared UI 类型
 interface MyComponentProps extends DialogProps {
   customField: string;
 }
 ```
 
-### 2. Import from Shared Package
+### 2. 从 shared 包导入
 
-Always import types from the shared package:
+始终从共享包导入类型：
 
 ```typescript
-// ✅ Good
+// ✅ 正确
 import { MCPServer, AgentConfig } from '@mcp_router/shared/types';
 
-// ❌ Bad - local type definition
+// ❌ 错误 —— 不要在本地重新定义
 interface MCPServer {
   // ...
 }
 ```
 
-### 3. Extend Shared Types
+### 3. 扩展共享类型
 
-When you need custom types, extend from shared types:
+若需要在共享类型基础上扩展，应使用继承：
 
 ```typescript
-// ✅ Good
+// ✅ 正确
 import { MCPServer } from '@mcp_router/shared/types';
 
 interface ExtendedMCPServer extends MCPServer {
@@ -109,19 +109,19 @@ interface ExtendedMCPServer extends MCPServer {
 }
 ```
 
-### 4. Database Types
+### 4. 数据库类型
 
-Keep database types with the schema but map to domain types:
+数据库类型与 schema 保持在一起，同时通过映射转换成领域类型：
 
 ```typescript
-// In database schema
+// 数据库 schema
 export interface DBUser {
   id: number;
   email: string;
   created_at: Date;
 }
 
-// In mapper
+// 映射函数
 import { User } from '@mcp_router/shared/types';
 
 export function mapDBUserToUser(dbUser: DBUser): User {
@@ -129,30 +129,30 @@ export function mapDBUserToUser(dbUser: DBUser): User {
 }
 ```
 
-## ESLint Enforcement
+## ESLint 规范
 
-The project uses a custom ESLint rule (`custom/no-scattered-types`) to enforce these guidelines. The rule will:
+项目使用自定义 ESLint 规则（`custom/no-scattered-types`）来强制执行上述约束：
 
-- ❌ Error on type definitions outside allowed locations
-- ✅ Allow component Props interfaces in `.tsx` files
-- ✅ Allow types in test files
-- ✅ Allow types in `.d.ts` files
+- ❌ 禁止在未授权目录定义类型
+- ✅ 允许 `.tsx` 文件中的组件 Props 接口
+- ✅ 允许测试文件中的类型
+- ✅ 允许 `.d.ts` 文件中的类型
 
-## Migration Guide
+## 迁移指引
 
-When migrating existing types:
+迁移历史类型时请遵循以下步骤：
 
-1. Identify the type category (domain, API, UI, etc.)
-2. Move the type to the appropriate location in `packages/shared/src/types/`
-3. Update all imports to use the shared package
-4. Remove the original type definition
-5. Run `pnpm lint` to verify compliance
+1. 确认类型类别（领域、API、UI 等）
+2. 将类型移动到 `packages/shared/src/types/` 中对应目录
+3. 更新所有引用，改为从共享包导入
+4. 删除原始类型定义
+5. 运行 `pnpm lint` 确认规范通过
 
-Note: The ESLint rule will automatically catch any types defined outside of allowed locations, ensuring compliance.
+自定义 ESLint 规则会在 Commit 阶段自动检查，确保迁移完成后不再出现散落类型。
 
-## Examples
+## 示例
 
-### Before (Scattered)
+### 迁移前（类型分散）
 ```typescript
 // apps/electron/src/services/mcp-service.ts
 interface MCPServerConfig {
@@ -168,7 +168,7 @@ interface MCPServerConfig {
 }
 ```
 
-### After (Centralized)
+### 迁移后（类型集中）
 ```typescript
 // packages/shared/src/types/domains/mcp.ts
 export interface MCPServerConfig {
@@ -184,10 +184,10 @@ import { MCPServerConfig } from '@mcp_router/shared/types';
 import { MCPServerConfig } from '@mcp_router/shared/types';
 ```
 
-## Benefits
+## 收益
 
-1. **Single Source of Truth**: No more duplicate type definitions
-2. **Better IntelliSense**: IDEs can better understand and suggest types
-3. **Easier Refactoring**: Change types in one place
-4. **Type Safety**: Consistent types across frontend and backend
-5. **Reduced Bundle Size**: No duplicate type definitions in build output
+1. **唯一可信源**：杜绝重复定义
+2. **更佳的智能提示**：IDE 能给出准确补全
+3. **更易重构**：只需在单处修改类型
+4. **类型安全**：前后端一致
+5. **减小包体**：构建结果不会重复打包类型
