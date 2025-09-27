@@ -195,17 +195,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   submitFeedback: (feedback: string) =>
     ipcRenderer.invoke("system:submitFeedback", feedback),
 
-  // Update Management
-  checkForUpdates: () => ipcRenderer.invoke("system:checkForUpdates"),
-  installUpdate: () => ipcRenderer.invoke("system:installUpdate"),
-  onUpdateAvailable: (callback: (available: boolean) => void) => {
-    const listener = (_: any, available: boolean) => callback(available);
-    ipcRenderer.on("update:downloaded", listener);
-    return () => {
-      ipcRenderer.removeListener("update:downloaded", listener);
-    };
-  },
-
   // Package Manager Management
   checkPackageManagers: () => ipcRenderer.invoke("packageManager:checkAll"),
   installPackageManagers: () => ipcRenderer.invoke("packageManager:installAll"),

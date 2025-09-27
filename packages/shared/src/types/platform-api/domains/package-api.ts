@@ -36,12 +36,6 @@ interface InstallResult {
   };
 }
 
-interface UpdateInfo {
-  updateAvailable: boolean;
-  version?: string;
-  releaseNotes?: string;
-}
-
 export interface PackageAPI {
   // Package management
   resolveVersions(
@@ -57,9 +51,6 @@ export interface PackageAPI {
     getPlatform(): Promise<Platform>;
     checkCommand(command: string): Promise<boolean>;
     restartApp(): Promise<boolean>;
-    checkForUpdates(): Promise<UpdateInfo>;
-    installUpdate(): Promise<boolean>;
-    onUpdateAvailable(callback: (available: boolean) => void): Unsubscribe;
     onProtocolUrl(callback: (url: string) => void): Unsubscribe;
   };
 }
