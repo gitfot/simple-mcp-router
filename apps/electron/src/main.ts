@@ -1,4 +1,4 @@
-import { app, BrowserWindow, session, shell } from "electron";
+﻿import { app, BrowserWindow, session, shell } from "electron";
 import path from "node:path";
 import { MCPServerManager } from "@/main/modules/mcp-server-manager/mcp-server-manager";
 import { AggregatorServer } from "@/main/modules/mcp-server-runtime/aggregator-server";
@@ -10,11 +10,7 @@ import { importExistingServerConfigurations } from "@/main/modules/mcp-apps-mana
 import { getPlatformAPIManager } from "@/main/modules/workspace/platform-api-manager";
 import { getWorkspaceService } from "@/main/modules/workspace/workspace.service";
 import { setupIpcHandlers } from "./main/infrastructure/ipc";
-import {
-  initializeEnvironment,
-  isDevelopment,
-  isProduction,
-} from "@/main/utils/environment";
+import { initializeEnvironment, isDevelopment } from "@/main/utils/environment";
 
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
@@ -47,12 +43,10 @@ app.on("second-instance", (_event, commandLine) => {
   }
 });
 
-// Squirrelの初回起動時の処理
-if (started) app.quit();
+// Squirrel銇垵鍥炶捣鍕曟檪銇嚘鐞?if (started) app.quit();
 
 // Global references
 export let mainWindow: BrowserWindow | null = null;
-export let backgroundWindow: BrowserWindow | null = null;
 // Flag to track if app.quit() was explicitly called
 let isQuitting = false;
 // Timer for updating tray context menu
@@ -65,17 +59,15 @@ export const API_BASE_URL = `${BASE_URL}api`;
 // Declare global variables defined by Electron Forge
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string | undefined;
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
-declare const BACKGROUND_WINDOW_PRELOAD_WEBPACK_ENTRY: string | undefined;
-declare const BACKGROUND_WINDOW_WEBPACK_ENTRY: string;
 
-// グローバル変数の宣言（初期化は後で行う）
+// 銈般儹銉笺儛銉鏁般伄瀹ｈ█锛堝垵鏈熷寲銇緦銇ц銇嗭級
 let serverManager: MCPServerManager;
 let aggregatorServer: AggregatorServer;
-let mcpHttpServer: MCPHttpServer;
+let mcpHttpServer: MCPHttpServer | null = null;
 
-// MCPServerManagerインスタンスを取得する関数をグローバルに公開
+// MCPServerManager銈ゃ兂銈广偪銉炽偣銈掑彇寰椼仚銈嬮枹鏁般倰銈般儹銉笺儛銉伀鍏枊
 (global as any).getMCPServerManager = () => serverManager;
-// AggregatorServerインスタンスを取得する関数をグローバルに公開
+// AggregatorServer銈ゃ兂銈广偪銉炽偣銈掑彇寰椼仚銈嬮枹鏁般倰銈般儹銉笺儛銉伀鍏枊
 (global as any).getAggregatorServer = () => aggregatorServer;
 
 const createWindow = () => {
@@ -100,7 +92,7 @@ const createWindow = () => {
   if (process.platform === "darwin") {
     // macOS: hidden title bar with traffic light buttons
     windowOptions.titleBarStyle = "hidden";
-    windowOptions.trafficLightPosition = { x: 20, y: 19 }; // y = (50-12)/2 ≈ 19 for vertical center
+    windowOptions.trafficLightPosition = { x: 20, y: 19 }; // y = (50-12)/2 鈮?19 for vertical center
   } else if (process.platform === "win32") {
     // Windows: use titleBarOverlay for custom title bar
     windowOptions.titleBarStyle = "hidden";
@@ -124,8 +116,7 @@ const createWindow = () => {
 
   // Handle window close event - hide instead of closing completely
   mainWindow.on("close", (event) => {
-    // 如果通过 app.quit() 主动退出，则允许窗口关闭
-    if (isQuitting) return;
+    // 濡傛灉閫氳繃 app.quit() 涓诲姩閫€鍑猴紝鍒欏厑璁哥獥鍙ｅ叧闂?    if (isQuitting) return;
 
     // Otherwise prevent the window from closing by default
     event.preventDefault();
@@ -151,36 +142,6 @@ const createWindow = () => {
   }
 };
 
-const createBackgroundWindow = () => {
-  // Create the background window for agent chat processing
-  backgroundWindow = new BrowserWindow({
-    width: isProduction() ? 1 : 800,
-    height: isProduction() ? 1 : 600,
-    show: isDevelopment(), // Show during development for debugging
-    frame: isDevelopment(),
-    skipTaskbar: isProduction(),
-    title: "Background Chat Window",
-    webPreferences: {
-      preload: BACKGROUND_WINDOW_PRELOAD_WEBPACK_ENTRY,
-      contextIsolation: true,
-      nodeIntegration: false,
-      devTools: isDevelopment(),
-    },
-  });
-
-  // Load the background renderer
-  backgroundWindow.loadURL(BACKGROUND_WINDOW_WEBPACK_ENTRY);
-
-  backgroundWindow.on("closed", () => {
-    backgroundWindow = null;
-  });
-
-  if (isDevelopment()) {
-    // Open dev tools for debugging background window
-    backgroundWindow.webContents.openDevTools();
-  }
-};
-
 /**
  * Sets up a timer to periodically update the tray context menu
  * @param serverManager The MCPServerManager instance
@@ -200,86 +161,81 @@ function setupTrayUpdateTimer(
 }
 
 /**
- * データベースの初期化を行う
- */
+ * 銉囥兗銈裤儥銉笺偣銇垵鏈熷寲銈掕銇? */
 async function initDatabase(): Promise<void> {
   try {
-    // ワークスペースサービスは自動的にメタデータベースを初期化する
+    // 銉兗銈偣銉氥兗銈广偟銉笺儞銈广伅鑷嫊鐨勩伀銉°偪銉囥兗銈裤儥銉笺偣銈掑垵鏈熷寲銇欍倠
     const workspaceService = getWorkspaceService();
 
-    // アクティブなワークスペースを取得
+    // 銈偗銉嗐偅銉栥仾銉兗銈偣銉氥兗銈广倰鍙栧緱
     const activeWorkspace = await workspaceService.getActiveWorkspace();
     if (!activeWorkspace) {
-      // デフォルトワークスペースがない場合は作成
+      // 銉囥儠銈┿儷銉堛儻銉笺偗銈广儦銉笺偣銇屻仾銇勫牬鍚堛伅浣滄垚
       await workspaceService.switchWorkspace("local-default");
     }
 
-    // ワークスペース固有のデータベースのマイグレーションは
-    // PlatformAPIManagerが初期化時に実行する
+    // 銉兗銈偣銉氥兗銈瑰浐鏈夈伄銉囥兗銈裤儥銉笺偣銇優銈ゃ偘銉兗銈枫儳銉炽伅
+    // PlatformAPIManager銇屽垵鏈熷寲鏅傘伀瀹熻銇欍倠
   } catch (error) {
     console.error(
-      "データベースマイグレーション中にエラーが発生しました:",
+      "銉囥兗銈裤儥銉笺偣銉炪偆銈般儸銉笺偡銉с兂涓伀銈ㄣ儵銉笺亴鐧虹敓銇椼伨銇椼仧:",
       error,
     );
   }
 }
 
 /**
- * MCP関連サービスの初期化を行う
+ * MCP闁㈤€ｃ偟銉笺儞銈广伄鍒濇湡鍖栥倰琛屻亞
  */
 async function initMCPServices(): Promise<void> {
-  // Platform APIマネージャーの初期化（ワークスペースDBを設定）
+  // Platform API銉炪儘銉笺偢銉ｃ兗銇垵鏈熷寲锛堛儻銉笺偗銈广儦銉笺偣DB銈掕ō瀹氾級
   await getPlatformAPIManager().initialize();
 
-  // MCPServerManagerの初期化
+  // MCPServerManager銇垵鏈熷寲
   serverManager = new MCPServerManager();
 
-  // データベースからサーバーリストを読み込む
+  // 銉囥兗銈裤儥銉笺偣銇嬨倝銈点兗銉愩兗銉偣銉堛倰瑾伩杈笺個
   await serverManager.initializeAsync();
 
-  // AggregatorServerの初期化
+  // AggregatorServer銇垵鏈熷寲
   aggregatorServer = new AggregatorServer(serverManager);
-  aggregatorServer.initAgentToolsServer();
 
-  // HTTPサーバーの初期化とスタート
-  mcpHttpServer = new MCPHttpServer(serverManager, 3282, aggregatorServer);
+  // HTTPサーバーを初期化
+  const httpServer = new MCPHttpServer(serverManager, 3282, aggregatorServer);
+  mcpHttpServer = httpServer;
   try {
-    await mcpHttpServer.start();
+    await httpServer.start();
   } catch (error) {
     console.error("Failed to start MCP HTTP Server:", error);
   }
 
-  // 既存のMCPサーバー設定をインポート
+  // 鏃㈠瓨銇甅CP銈点兗銉愩兗瑷畾銈掋偆銉炽儩銉笺儓
   await importExistingServerConfigurations();
 }
 
 /**
- * ユーザーインターフェース関連の初期化を行う
+ * 銉︺兗銈躲兗銈ゃ兂銈裤兗銉曘偋銉笺偣闁㈤€ｃ伄鍒濇湡鍖栥倰琛屻亞
  */
 function initUI(): void {
-  // メインウィンドウ作成
+  // 銉°偆銉炽偊銈ｃ兂銉夈偊浣滄垚
   createWindow();
 
-  // Platform APIマネージャーにメインウィンドウを設定
+  // Platform API銉炪儘銉笺偢銉ｃ兗銇儭銈ゃ兂銈︺偅銉炽儔銈︺倰瑷畾
   if (mainWindow) {
     getPlatformAPIManager().setMainWindow(mainWindow);
   }
 
-  // バックグラウンドウィンドウ作成
-  createBackgroundWindow();
-
-  // システムトレイ作成
+  // システムトレイを作成
   createTray(serverManager);
 
-  // トレイコンテキストメニューの定期更新を設定
+  // トレイメニューを定期更新
   setupTrayUpdateTimer(serverManager);
 }
 
 /**
- * アプリケーション全体の初期化を行う
- */
+ * 銈儣銉偙銉笺偡銉с兂鍏ㄤ綋銇垵鏈熷寲銈掕銇? */
 async function initApplication(): Promise<void> {
-  // 環境設定を初期化
+  // 鐠板瑷畾銈掑垵鏈熷寲
   initializeEnvironment();
   const DEV_CSP = `
     default-src 'self' 'unsafe-inline' http://localhost:* ws://localhost:*;
@@ -299,7 +255,7 @@ async function initApplication(): Promise<void> {
     });
   });
 
-  // アプリケーション名を設定
+  // 銈儣銉偙銉笺偡銉с兂鍚嶃倰瑷畾
   app.setName("MCP Router");
 
   // アプリケーションメニューを設定
@@ -318,7 +274,7 @@ async function initApplication(): Promise<void> {
   // MCPサービス初期化
   await initMCPServices();
 
-  // IPC通信ハンドラの初期化
+  // IPC閫氫俊銉忋兂銉夈儵銇垵鏈熷寲
   setupIpcHandlers();
 
   // UI初期化
@@ -394,10 +350,12 @@ app.on("will-quit", async () => {
     trayUpdateTimer = null;
   }
   // Stop the HTTP server
-  try {
-    await mcpHttpServer.stop();
-  } catch (error) {
-    console.error("Failed to stop MCP HTTP Server:", error);
+  if (mcpHttpServer) {
+    try {
+      await mcpHttpServer.stop();
+    } catch (error) {
+      console.error("Failed to stop MCP HTTP Server:", error);
+    }
   }
 
   serverManager.shutdown();
@@ -423,3 +381,6 @@ export async function handleProtocolUrl(urlString: string) {
     console.error("Failed to process protocol URL:", error);
   }
 }
+
+
+

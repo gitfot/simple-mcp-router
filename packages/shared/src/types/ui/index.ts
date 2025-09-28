@@ -1,4 +1,4 @@
-// Toast and notification types
+﻿// Toast and notification types
 export interface ToastMessage {
   id: string;
   message: string;
@@ -48,7 +48,6 @@ export interface UIState {
   dialog: DialogState;
 
   // Modal and overlay states
-  packageManagerOverlay: boolean;
 
   // Navigation state
   currentPage: string;

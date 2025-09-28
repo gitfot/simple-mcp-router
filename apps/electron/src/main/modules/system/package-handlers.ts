@@ -6,60 +6,79 @@
  */
 
 import { ipcMain } from "electron";
-import {
-  resolvePackageVersionsInArgs,
-  checkMcpServerPackageUpdates,
-} from "@/main/modules/agent/package/package-version-resolver";
-import {
-  checkPnpmExists,
-  checkUvExists,
-  installPNPM,
-  installUV,
-} from "@/main/modules/agent/package/install-package-manager";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+
+async function commandExists(command: string, args: string[] = ["--version"]): Promise<boolean> {
+  const binary = process.platform === "win32" ? `${command}.cmd` : command;
+  try {
+    await execFileAsync(binary, args, { windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function checkNodeExists(): Promise<boolean> {
+  const binary = process.platform === "win32" ? "node.exe" : "node";
+  try {
+    await execFileAsync(binary, ["--version"], { windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function checkPnpmExists(): Promise<boolean> {
+  const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+  try {
+    await execFileAsync(pnpm, ["--version"], { windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function checkUvExists(): Promise<boolean> {
+  const candidates = process.platform === "win32" ? ["uv.exe", "uvx.exe"] : ["uv", "uvx"];
+  for (const binary of candidates) {
+    try {
+      await execFileAsync(binary, ["--version"], { windowsHide: true });
+      return true;
+    } catch {
+      continue;
+    }
+  }
+  return false;
+}
+
+async function installPNPM(): Promise<void> {
+  const npmBinary = process.platform === "win32" ? "npm.cmd" : "npm";
+  await execFileAsync(npmBinary, ["install", "-g", "pnpm"], { windowsHide: true });
+}
+
+async function installUV(): Promise<void> {
+  const installers = process.platform === "win32" ? ["pip.exe", "pip3.exe"] : ["pip3", "pip"];
+  let lastError: unknown = null;
+  for (const installer of installers) {
+    try {
+      await execFileAsync(installer, ["install", "--upgrade", "uv"], {
+        windowsHide: true,
+      });
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError ?? new Error("Failed to install uv via pip");
+}
 
 /**
  * Register unified package-related IPC handlers
  */
 export function setupPackageHandlers(): void {
-  // ====================
-  // Package Version Resolution
-  // ====================
-
-  // Handler for resolving package versions in arguments
-  ipcMain.handle(
-    "package:resolve-versions",
-    async (_, argsString: string, packageManager: "pnpm" | "uvx") => {
-      try {
-        // Call the utility function directly
-        const result = await resolvePackageVersionsInArgs(
-          argsString,
-          packageManager,
-        );
-        return { success: true, resolvedArgs: result };
-      } catch (error) {
-        console.error("Error resolving package versions:", error);
-        return { success: false, error: (error as Error).message };
-      }
-    },
-  );
-
-  // Handler to check for updates to packages in a server
-  ipcMain.handle(
-    "package:check-updates",
-    async (_, args: string[], packageManager: "pnpm" | "uvx") => {
-      try {
-        const updates = await checkMcpServerPackageUpdates(
-          args,
-          packageManager,
-        );
-        return { success: true, updates };
-      } catch (error) {
-        console.error("Failed to check for package updates:", error);
-        return { success: false, error: String(error) };
-      }
-    },
-  );
-
   // ====================
   // Package Manager Management
   // ====================
@@ -67,12 +86,12 @@ export function setupPackageHandlers(): void {
   // Check both package managers and Node.js
   ipcMain.handle("packageManager:checkAll", async () => {
     try {
-      const [pnpmAndNode, uv] = await Promise.all([
-        checkPnpmExists(), // This now checks both pnpm and node
+      const [pnpmAvailable, uvAvailable, nodeAvailable] = await Promise.all([
+        checkPnpmExists(),
         checkUvExists(),
+        checkNodeExists(),
       ]);
-      // If pnpm exists, node must also exist based on our checkPnpmExists logic
-      return { node: pnpmAndNode, pnpm: pnpmAndNode, uv };
+      return { node: nodeAvailable, pnpm: pnpmAvailable, uv: uvAvailable };
     } catch (error) {
       console.error("Error checking package managers:", error);
       return { node: false, pnpm: false, uv: false };
@@ -90,26 +109,29 @@ export function setupPackageHandlers(): void {
 
     try {
       // Check which package managers are already installed
-      const [pnpmAndNodeExists, uvExists] = await Promise.all([
-        checkPnpmExists(), // This checks both pnpm and node
+      const [pnpmExists, uvExists, nodeExists] = await Promise.all([
+        checkPnpmExists(),
         checkUvExists(),
+        checkNodeExists(),
       ]);
 
-      // Install pnpm if not exists (this will also install Node.js if needed)
-      if (!pnpmAndNodeExists) {
-        try {
-          await installPNPM();
-          // Since checkPnpmExists returns false if either pnpm or node is missing,
-          // we consider both were potentially installed
-          result.installed.pnpm = true;
-          result.installed.node = true;
-        } catch (error) {
-          console.error("Error installing pnpm/node:", error);
-          result.success = false;
-          const errorMessage =
-            error instanceof Error ? error.message : String(error);
-          result.errors.pnpm = errorMessage;
-          result.errors.node = errorMessage;
+      if (!nodeExists) {
+        result.success = false;
+        result.errors.node =
+          "未检测到 Node.js，请先手动安装后再继续";
+      } else {
+        // Install pnpm if not exists (requires Node.js)
+        if (!pnpmExists) {
+          try {
+            await installPNPM();
+            result.installed.pnpm = true;
+          } catch (error) {
+            console.error("Error installing pnpm:", error);
+            result.success = false;
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            result.errors.pnpm = errorMessage;
+          }
         }
       }
 

@@ -90,40 +90,11 @@ export class MainDatabaseMigration {
       execute: (db) => this.migrateAddRequiredParamsColumn(db),
     });
 
-    // AgentRepository関連のマイグレーション: エージェントテーブルの管理
-    this.migrations.push({
-      id: "20250526_agent_table_management",
-      description:
-        "Manage agent tables: drop for reinitialization and add auto_execute_tool column to deployedAgents",
-      execute: (db) => this.migrateAgentTableManagement(db),
-    });
-
     // データ暗号化マイグレーション
     this.migrations.push({
       id: "20250513_encrypt_server_data",
       description: "Encrypt server sensitive data",
       execute: (db) => this.migrateToEncryption(db),
-    });
-
-    // DeployedAgent original_id カラム追加
-    this.migrations.push({
-      id: "20250602_add_original_id_to_deployed_agents",
-      description: "Add original_id column to deployedAgents table",
-      execute: (db) => this.migrateAddOriginalIdToDeployedAgents(db),
-    });
-
-    // DeployedAgent mcp_server_enabled カラム追加
-    this.migrations.push({
-      id: "20250610_add_mcp_server_enabled_to_deployed_agents",
-      description: "Add mcp_server_enabled column to deployedAgents table",
-      execute: (db) => this.migrateAddMcpServerEnabledToDeployedAgents(db),
-    });
-
-    // ChatSessions テーブルの更新: status/source追加
-    this.migrations.push({
-      id: "20250614_update_chat_sessions_schema",
-      description: "Update chat_sessions table: add status/source columns",
-      execute: (db) => this.migrateUpdateChatSessionsSchema(db),
     });
 
     // トークンテーブルをメインDBに確実に作成

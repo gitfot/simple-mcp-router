@@ -22,24 +22,4 @@ export function setupSettingsHandlers(): void {
     }
   });
 
-  ipcMain.handle("settings:increment-package-manager-overlay-count", () => {
-    try {
-      const settingsService = getSettingsService();
-      const currentSettings = settingsService.getSettings();
-      const newCount =
-        (currentSettings.packageManagerOverlayDisplayCount || 0) + 1;
-      const updatedSettings = {
-        ...currentSettings,
-        packageManagerOverlayDisplayCount: newCount,
-      };
-      const success = settingsService.saveSettings(updatedSettings);
-      return { success, count: newCount };
-    } catch (error) {
-      console.error(
-        "Failed to increment package manager overlay display count:",
-        error,
-      );
-      return { success: false, count: 0 };
-    }
-  });
 }

@@ -7,9 +7,6 @@ import {
 } from "../../infrastructure/database/sqlite-manager";
 import { getDatabaseContext } from "./database-context";
 import { MainDatabaseMigration } from "../../infrastructure/database/main-database-migration";
-import { AgentRepository } from "../agent/agent-repository";
-import { DeployedAgentRepository } from "../agent/deployed-agent-repository";
-import { SessionRepository } from "../agent/session-repository";
 import { McpLoggerRepository } from "../mcp-logger/mcp-logger.repository";
 import { McpServerManagerRepository } from "../mcp-server-manager/mcp-server-manager.repository";
 import { SettingsRepository } from "../settings/settings.repository";
@@ -19,11 +16,6 @@ import { ServerService } from "@/main/modules/mcp-server-manager/server-service"
 import { McpAppsManagerService } from "../mcp-apps-manager/mcp-apps-manager.service";
 import { McpLoggerService } from "@/main/modules/mcp-logger/mcp-logger.service";
 import { SettingsService } from "../settings/settings.service";
-import {
-  DevelopmentAgentService,
-  DeployedAgentService,
-  AgentSharingService,
-} from "@/main/modules/agent";
 
 /**
  * Platform API管理クラス
@@ -119,11 +111,8 @@ export class PlatformAPIManager {
     // ワークスペースDBの初期化は各リポジトリが自動的に行う
 
     // リポジトリをリセット（新しいデータベースを使用するように）
-    AgentRepository.resetInstance();
-    DeployedAgentRepository.resetInstance();
     McpLoggerRepository.resetInstance();
     McpServerManagerRepository.resetInstance();
-    SessionRepository.resetInstance();
     SettingsRepository.resetInstance();
     McpAppsManagerRepository.resetInstance();
     WorkspaceRepository.resetInstance();
@@ -133,9 +122,6 @@ export class PlatformAPIManager {
     McpAppsManagerService.resetInstance();
     McpLoggerService.resetInstance();
     SettingsService.resetInstance();
-    DevelopmentAgentService.resetInstance();
-    DeployedAgentService.resetInstance();
-    AgentSharingService.resetInstance();
 
     // MCPServerManagerとAggregatorServerの再初期化をトリガー
     // グローバル変数からMCPServerManagerを取得して再初期化
@@ -152,16 +138,6 @@ export class PlatformAPIManager {
     }
 
     // AggregatorServerの再初期化
-    const getAggregatorServer = (global as any).getAggregatorServer;
-    if (getAggregatorServer && typeof getAggregatorServer === "function") {
-      const aggregatorServer = getAggregatorServer();
-      if (
-        aggregatorServer &&
-        typeof aggregatorServer.initAgentToolsServer === "function"
-      ) {
-        aggregatorServer.initAgentToolsServer();
-      }
-    }
   }
 
   /**
