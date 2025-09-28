@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import ServerDetailsRemoveDialog from "@/renderer/components/mcp/server/server-details/ServerDetailsRemoveDialog";
 import { MCPServer } from "@mcp_router/shared";
 import { ScrollArea } from "@mcp_router/ui";
-import { Badge } from "@mcp_router/ui";
-import { Switch } from "@mcp_router/ui";
 import {
   IconSearch,
   IconServer,
@@ -11,15 +9,12 @@ import {
   IconRefresh,
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import { cn } from "@/renderer/utils/tailwind-utils";
-import { Trash, AlertCircle, Grid3X3, List, Share } from "lucide-react";
-import { hasUnsetRequiredParams } from "@/renderer/utils/server-validation-utils";
+import { Share } from "lucide-react";
 import { toast } from "sonner";
 import {
   useServerStore,
   useWorkspaceStore,
   useAuthStore,
-  useViewPreferencesStore,
 } from "../stores";
 import { showServerError } from "@/renderer/components/common";
 
@@ -51,7 +46,6 @@ const Home: React.FC = () => {
   // Get workspace and auth state
   const { currentWorkspace } = useWorkspaceStore();
   const { isAuthenticated, login } = useAuthStore();
-  const { serverViewMode, setServerViewMode } = useViewPreferencesStore();
 
   // Filter servers based on search query and sort them
   const filteredServers = servers
@@ -172,26 +166,6 @@ const Home: React.FC = () => {
           />
           <IconSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         </div>
-        <div className="flex gap-1">
-          <Button
-            variant={serverViewMode === "list" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setServerViewMode("list")}
-            className="h-8 w-8 p-0"
-            title="List View"
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={serverViewMode === "grid" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setServerViewMode("grid")}
-            className="h-8 w-8 p-0"
-            title="Grid View"
-          >
-            <Grid3X3 className="h-4 w-4" />
-          </Button>
-        </div>
         <Button
           variant="outline"
           size="sm"
@@ -243,195 +217,6 @@ const Home: React.FC = () => {
               </div>
             </div>
           </div>
-        ) : serverViewMode === "list" ? (
-          <ScrollArea className="h-full">
-            <div className="divide-y divide-border">
-              {filteredServers.map((server) => {
-                // console.log("Server:", server);
-
-                const statusConfig = {
-                  running: {
-                    color: "bg-emerald-500",
-                    pulseEffect: "animate-pulse",
-                  },
-                  starting: {
-                    color: "bg-yellow-500",
-                    pulseEffect: "animate-pulse",
-                  },
-                  stopping: {
-                    color: "bg-orange-500",
-                    pulseEffect: "animate-pulse",
-                  },
-                  stopped: {
-                    color: "bg-muted-foreground",
-                    pulseEffect: "",
-                  },
-                  error: {
-                    color: "bg-red-500",
-                    pulseEffect: "animate-pulse",
-                  },
-                };
-
-                // Add safety check to use 'stopped' as default when status is invalid
-                const status =
-                  statusConfig[server.status as keyof typeof statusConfig] ||
-                  statusConfig.stopped;
-
-                return (
-                  <div key={server.id}>
-                    <div
-                      className="p-4 hover:bg-sidebar-hover cursor-pointer"
-                      onClick={() => toggleServerExpand(server.id)}
-                    >
-                      <div className="flex justify-between">
-                        <div className="flex flex-col">
-                          <div className="font-medium text-base mb-1 hover:text-primary">
-                            {server.name}
-                          </div>
-
-                          {/* Description - if available */}
-                          {"description" in server &&
-                            typeof (server as any).description === "string" && (
-                              <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
-                                {(server as any).description}
-                              </p>
-                            )}
-                          <div className="flex flex-wrap gap-2 mb-1">
-                            {/* Server Type Badge */}
-                            <Badge variant="secondary" className="w-fit">
-                              {server.serverType === "local"
-                                ? "Local"
-                                : "Remote"}
-                            </Badge>
-
-                            {/* Status Badge */}
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "w-fit flex items-center gap-1",
-                                status.pulseEffect,
-                              )}
-                            >
-                              <div
-                                className={cn(
-                                  "h-2 w-2 rounded-full",
-                                  status.color,
-                                )}
-                              ></div>
-                              {t(`serverList.status.${server.status}`)}
-                            </Badge>
-
-                            {/* Warning Badge for unset required params */}
-                            {hasUnsetRequiredParams(server) && (
-                              <Badge
-                                variant="destructive"
-                                className="w-fit flex items-center gap-1"
-                                title={t("serverList.requiredParamsNotSet")}
-                              >
-                                <AlertCircle className="h-3 w-3" />
-                                {t("serverList.configRequired")}
-                              </Badge>
-                            )}
-                          </div>
-
-                          {/* Tags - if available */}
-                          {"tags" in server &&
-                            Array.isArray((server as any).tags) &&
-                            (server as any).tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {((server as any).tags as string[]).map(
-                                  (tag: string, index: number) => (
-                                    <Badge
-                                      key={index}
-                                      variant="outline"
-                                      className="text-xs px-1 py-0"
-                                    >
-                                      {tag}
-                                    </Badge>
-                                  ),
-                                )}
-                              </div>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {server.status === "error" && (
-                            <button
-                              className="text-destructive hover:text-destructive/80 p-1.5 rounded-full hover:bg-destructive/10 transition-colors"
-                              onClick={(e) => openErrorModal(server, e)}
-                              title={t("serverList.errorDetails")}
-                            >
-                              <AlertCircle className="h-4 w-4" />
-                            </button>
-                          )}
-                          <span className="text-xs text-muted-foreground">
-                            {server.status === "running"
-                              ? t("serverList.status.running")
-                              : server.status === "starting"
-                                ? t("serverList.status.starting")
-                                : server.status === "stopping"
-                                  ? t("serverList.status.stopping")
-                                  : t("serverList.status.stopped")}
-                          </span>
-                          <div className="h-6 w-12">
-                            <Switch
-                              checked={server.status === "running"}
-                              disabled={
-                                server.status === "starting" ||
-                                server.status === "stopping" ||
-                                hasUnsetRequiredParams(server)
-                              }
-                              title={
-                                hasUnsetRequiredParams(server)
-                                  ? t("serverList.requiredParamsNotSet")
-                                  : undefined
-                              }
-                              onCheckedChange={async (checked) => {
-                                try {
-                                  if (checked) {
-                                    await startServer(server.id);
-                                    // サーバーが起動完了した場合のメッセージ
-                                    toast.success(
-                                      t("serverList.serverStarted"),
-                                    );
-                                  } else {
-                                    await stopServer(server.id);
-                                    // サーバーが停止完了した場合のメッセージ
-                                    toast.success(
-                                      t("serverList.serverStopped"),
-                                    );
-                                  }
-                                } catch (error) {
-                                  console.error(
-                                    "Server operation failed:",
-                                    error,
-                                  );
-                                  // Use enhanced error display with server name context
-                                  showServerError(
-                                    error instanceof Error
-                                      ? error
-                                      : new Error(String(error)),
-                                    server.name,
-                                  );
-                                }
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                          </div>
-                          <button
-                            className="text-red-500 hover:text-red-400 p-1.5 rounded-full hover:bg-red-500/10 transition-colors"
-                            onClick={(e) => openRemoveDialog(server, e)}
-                            title={t("serverDetails.uninstall")}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
         ) : (
           <ScrollArea className="h-full">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
