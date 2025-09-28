@@ -21,8 +21,6 @@
   - リモートまたはローカルサーバ
   - DXT、JSON、Manualに対応
 - 🖥️ **クロスプラットフォーム** - WindowsとmacOSに対応
-- 🤖 **AI Agent機能** - MCPツールを使えるAI Agentを作成・共有・利用でき、作成したAgentをMCPサーバとして他のアプリで利用可能
-
 ## 🔒 プライバシーとセキュリティ
 
 ### データはローカルに保存
@@ -58,8 +56,8 @@ Claude、Cline、Windsurf、Cursorなどの人気AIツールやカスタムク�
 
 <img src="https://raw.githubusercontent.com/mcp-router/mcp-router/main/public/images/readme/token.png" alt="ワンクリック連携" width="600">
 
-### 📈 包括的なロギングと分析
-詳細なリクエストログの監視と表示
+### 📈 包括的なロギング
+詳細なリクエストログをフィルタ付きで表示
 
 <img src="https://raw.githubusercontent.com/mcp-router/mcp-router/main/public/images/readme/stats.png" alt="ログと統計" width="600">
 

@@ -16,26 +16,17 @@ Electron アプリケーションのディレクトリ構造が複雑化し、�
 
 ### 新しいディレクトリ構造
 
-```
+`
 apps/electron/src/
 ├── main/                    # メインプロセス
 │   ├── modules/            # モジュール層（ビジネスロジック）
-│   │   ├── agent/          # エージェント管理
-│   │   │   ├── deployed/   # デプロイ済みエージェント
-│   │   │   ├── development/ # 開発用エージェント
-│   │   │   ├── package/    # パッケージ管理
-│   │   │   └── shared/     # 共通ユーティリティ
 │   │   ├── auth/           # 認証
-│   │   ├── mcp-apps-manager/ # MCPアプリ管理
-│   │   │   └── (mcp-client, token-manager等)
-│   │   ├── mcp-logger/     # MCPログ管理
-│   │   ├── mcp-server-manager/ # MCPサーバー管理
-│   │   │   └── dxt-processor/ # DXTデータ処理
-│   │   ├── mcp-server-runtime/ # MCPサーバーランタイム
-│   │   │   └── http/       # HTTPサーバー
+│   │   ├── mcp-apps-manager/ # MCPアプリ統合
+│   │   ├── mcp-logger/     # ログ管理
+│   │   ├── mcp-server-manager/ # MCPサーバ管理
+│   │   ├── mcp-server-runtime/ # MCPサーバランタイム
 │   │   ├── settings/       # 設定管理
 │   │   ├── system/         # システム管理
-│   │   ├── workflow/       # ワークフロー・フック管理
 │   │   └── workspace/      # ワークスペース管理
 │   ├── infrastructure/     # インフラストラクチャ層
 │   │   ├── database/       # データベースアクセス
@@ -46,20 +37,19 @@ apps/electron/src/
 │   └── utils/              # メインプロセス用ユーティリティ
 ├── renderer/               # レンダラープロセス
 │   ├── components/         # UIコンポーネント
-│   │   ├── agent/          # エージェント関連UI
 │   │   ├── auth/           # 認証UI
 │   │   ├── common/         # 共通コンポーネント
 │   │   ├── layout/         # レイアウト
 │   │   ├── mcp/            # MCP関連UI
 │   │   ├── setting/        # 設定UI
-│   │   ├── workflow/       # ワークフロー・フック管理UI
 │   │   └── workspace/      # ワークスペースUI
 │   ├── platform-api/       # Platform API
 │   ├── services/           # レンダラーサービス
 │   ├── stores/             # 状態管理（Zustand）
 │   └── utils/              # レンダラー用ユーティリティ
 └── types/                  # 型定義
-```
+`
+
 
 ### レイヤーの責務
 
@@ -67,7 +57,7 @@ apps/electron/src/
 - **責務**: ビジネスロジックとビジネスルール、アプリケーション機能
 - **依存**: インフラストラクチャ層に依存
 - **内容**: 
-  - 各機能モジュール（agent, auth, workspace等）
+  - 各機能モジュール（auth、mcp-server-manager、mcp-apps-manager、workspace等）
   - サービスクラス
   - リポジトリインターフェース
   - ビジネスルールの実装
@@ -94,13 +84,13 @@ apps/electron/src/
 - **依存**: IPC経由でメインプロセスと通信
 - **内容**:
   - Reactコンポーネント
-    - Agent管理UI（作成・使用）
-    - Hook管理UI
+    - サーバ管理UI（作成・使用）
+    - ログ閲覧UI
     - MCP Apps UI
     - Server管理UI
   - 状態管理（Zustand）
-    - hook-store
-    - workflow-store
+    - server-editing-store
+    - view-preferences-store
     - theme-store
     - view-preferences-store
   - Platform API抽象化
@@ -172,6 +162,7 @@ src/
   - MCPアプリケーション機能の詳細を追加
   - スキーマ管理の統一化を反映
   - 新規追加されたサービスとコンポーネントを記載
+- **2025年10月**: エージェント/ワークフロー機能を削除し、現行のモジュール一覧とレンダラー構成を反映
 
 ## 参考文献
 - [Clean Architecture by Robert C. Martin](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)

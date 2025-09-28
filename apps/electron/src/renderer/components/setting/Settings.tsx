@@ -12,7 +12,6 @@ import { Button } from "@mcp_router/ui";
 import { Badge } from "@mcp_router/ui";
 import { useThemeStore } from "@/renderer/stores";
 import { useAuthStore } from "../../stores";
-import { IconBrandDiscord } from "@tabler/icons-react";
 import { electronPlatformAPI as platformAPI } from "../../platform-api/electron-platform-api";
 
 const Settings: React.FC = () => {
@@ -38,18 +37,18 @@ const Settings: React.FC = () => {
   // Get normalized language code for select
   const getCurrentLanguage = () => {
     const currentLang = i18n.language;
-    // Handle cases like 'en-US' -> 'en', 'ja-JP' -> 'ja'
+    // Handle cases like 'en-US' -> 'en', 'zh-CN' -> 'zh'
     if (currentLang.startsWith("en")) return "en";
-    if (currentLang.startsWith("ja")) return "ja";
+    if (currentLang.startsWith("zh")) return "zh";
     return "en"; // fallback
   };
 
-  // 認証状態の監視
+  // 瑾嶈鐘舵厠銇洠瑕?
   useEffect(() => {
-    // 初期状態を確認
+    // 鍒濇湡鐘舵厠銈掔⒑瑾?
     checkAuthStatus();
 
-    // 認証状態の変更を監視
+    // 瑾嶈鐘舵厠銇鏇淬倰鐩ｈ
     const unsubscribe = subscribeToAuthChanges();
 
     return () => {
@@ -57,10 +56,10 @@ const Settings: React.FC = () => {
     };
   }, [checkAuthStatus, subscribeToAuthChanges]);
 
-  // Settingsページ表示時にクレジット残高を更新
+  // Settings銉氥兗銈歌〃绀烘檪銇偗銉偢銉冦儓娈嬮珮銈掓洿鏂?
   useEffect(() => {
     if (isAuthenticated) {
-      // ページが表示された時に一回だけクレジット残高を更新
+      // 銉氥兗銈搞亴琛ㄧず銇曘倢銇熸檪銇竴鍥炪仩銇戙偗銉偢銉冦儓娈嬮珮銈掓洿鏂?
       const refreshCredits = async () => {
         try {
           await checkAuthStatus(true);
@@ -71,25 +70,25 @@ const Settings: React.FC = () => {
     }
   }, [isAuthenticated, checkAuthStatus]);
 
-  // ログイン処理
+  // 銉偘銈ゃ兂鍑︾悊
   const handleLogin = async () => {
     try {
       await login();
     } catch (error) {
-      console.error("ログインに失敗しました:", error);
+      console.error("銉偘銈ゃ兂銇け鏁椼仐銇俱仐銇?", error);
     }
   };
 
-  // ログアウト処理
+  // 銉偘銈偊銉堝嚘鐞?
   const handleLogout = async () => {
     try {
       await logout();
     } catch (error) {
-      console.error("ログアウトに失敗しました:", error);
+      console.error("銉偘銈偊銉堛伀澶辨晽銇椼伨銇椼仧:", error);
     }
   };
 
-  // クレジット残高の更新処理
+  // 銈儸銈搞儍銉堟畫楂樸伄鏇存柊鍑︾悊
   const handleRefreshCredits = async () => {
     if (!isAuthenticated || isRefreshingCredits) return;
 
@@ -97,7 +96,7 @@ const Settings: React.FC = () => {
       setIsRefreshingCredits(true);
       await checkAuthStatus(true); // Force refresh
     } catch (error) {
-      console.error("クレジット残高の更新に失敗しました:", error);
+      console.error("銈儸銈搞儍銉堟畫楂樸伄鏇存柊銇け鏁椼仐銇俱仐銇?", error);
     } finally {
       setIsRefreshingCredits(false);
     }
@@ -127,7 +126,7 @@ const Settings: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="en">{t("languages.en")}</SelectItem>
-                  <SelectItem value="ja">{t("languages.ja")}</SelectItem>
+                  <SelectItem value="zh">{t("languages.zh")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -260,15 +259,6 @@ const Settings: React.FC = () => {
                       {userInfo?.paidCreditBalance || 0}
                     </Badge>
                   </div>
-                  <Button
-                    size="sm"
-                    className="w-full h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={() => {
-                      window.open("https://mcp-router.net/profile", "_blank");
-                    }}
-                  >
-                    {t("settings.purchaseCredits")}
-                  </Button>
                 </div>
               </div>
             </div>
@@ -286,30 +276,6 @@ const Settings: React.FC = () => {
               </Button>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Community Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">{t("settings.community")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              {t("settings.communityDescription")}
-            </p>
-            <Button
-              variant="outline"
-              className="w-full flex items-center justify-center gap-2"
-              onClick={() =>
-                window.open("https://discord.gg/dwG9jPrhxB", "_blank")
-              }
-            >
-              <IconBrandDiscord className="h-5 w-5" />
-              {t("settings.joinDiscord")}
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
