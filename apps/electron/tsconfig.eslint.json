@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/**/*",
+    "src/**/*.json",
+    "e2e/**/*",
+    "webpack.*.ts",
+    "webpack.*.mts",
+    "webpack.*.cts",
+    "*.config.ts",
+    "playwright-*.ts",
+    "../../packages/shared/src/types/svg.d.ts"
+  ],
+  "exclude": [
+    "dist",
+    "out",
+    ".webpack"
+  ]
+}
