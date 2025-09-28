@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <title>MCP Router - 请求日志</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --background: #090a1a;
+      --surface: rgba(15, 23, 42, 0.72);
+      --surface-strong: rgba(24, 31, 61, 0.88);
+      --primary: #7c3aed;
+      --primary-soft: rgba(124, 58, 237, 0.22);
+      --accent: #22d3ee;
+      --text: #f4f5ff;
+      --muted: #a1a6c8;
+      --border: rgba(124, 58, 237, 0.18);
+      --warning: #fb7185;
+      --success: #34d399;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', sans-serif;
+      background: radial-gradient(circle at top right, rgba(124, 58, 237, 0.28), transparent 60%), var(--background);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 56px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    .top-bar h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.4px;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .top-actions span {
+      white-space: nowrap;
+    }
+    .settings-button {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(124, 58, 237, 0.4);
+      background: rgba(15, 23, 42, 0.65);
+      box-shadow: 0 16px 38px rgba(8, 12, 32, 0.45);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .settings-button:hover {
+      background: var(--primary);
+      border-color: transparent;
+      box-shadow: 0 18px 42px rgba(124, 58, 237, 0.55);
+      color: #fff;
+    }
+    .settings-button svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+    .nav-chips {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: rgba(15, 23, 42, 0.55);
+      padding: 14px 18px;
+      border-radius: 20px;
+      box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.24);
+      backdrop-filter: blur(18px);
+    }
+    .chip {
+      padding: 12px 18px;
+      border-radius: 14px;
+      text-decoration: none;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.6px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .chip:hover {
+      border-color: var(--primary-soft);
+      color: var(--text);
+    }
+    .chip.is-active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 16px 36px rgba(124, 58, 237, 0.55);
+    }
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .glass-card {
+      background: var(--surface);
+      border-radius: 22px;
+      padding: 26px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 18px 46px rgba(8, 12, 32, 0.55);
+      backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .panel-title {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .panel-title h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0.4px;
+    }
+    .panel-title span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .action-button {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+    .action-button:hover {
+      color: var(--text);
+      border-color: var(--primary-soft);
+      box-shadow: 0 12px 28px rgba(8, 12, 32, 0.45);
+    }
+    .action-button.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 16px 34px rgba(124, 58, 237, 0.45);
+    }
+    .action-button svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+    .logs-table-wrapper {
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(15, 23, 42, 0.58);
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.06);
+    }
+    table.logs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums;
+    }
+    table.logs-table thead {
+      background: rgba(15, 23, 42, 0.75);
+    }
+    table.logs-table th {
+      text-align: left;
+      padding: 14px 18px;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.6px;
+      font-weight: 500;
+    }
+    table.logs-table th.is-right {
+      text-align: right;
+    }
+    table.logs-table td {
+      padding: 14px 18px;
+      font-size: 13px;
+      color: var(--text);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      letter-spacing: 0.3px;
+    }
+    table.logs-table td.is-right {
+      text-align: right;
+    }
+    table.logs-table tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.45);
+    }
+    table.logs-table tbody tr:hover {
+      background: rgba(124, 58, 237, 0.18);
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: 0.3px;
+      background: rgba(52, 211, 153, 0.18);
+      color: var(--success);
+    }
+    .status-pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+    .logs-pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .pagination-buttons {
+      display: inline-flex;
+      gap: 10px;
+    }
+    .page-button {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(15, 23, 42, 0.55);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .page-button:hover {
+      color: var(--text);
+      border-color: var(--primary-soft);
+    }
+    .page-button.is-disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .page-size {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .page-size select {
+      appearance: none;
+      padding: 10px 32px 10px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(15, 23, 42, 0.55);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .page-size::after {
+      content: '';
+      position: absolute;
+      right: 12px;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid var(--muted);
+    }
+    .page-note {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      letter-spacing: 0.6px;
+    }
+    @media (max-width: 900px) {
+      body {
+        padding: 32px 32px 40px;
+      }
+      .logs-pagination {
+        justify-content: flex-start;
+      }
+    }
+    @media (max-width: 640px) {
+      body {
+        padding: 28px 20px 36px;
+      }
+      .nav-chips {
+        justify-content: flex-start;
+        padding: 12px 14px;
+      }
+      .logs-table-wrapper {
+        overflow-x: auto;
+      }
+      .logs-pagination {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="top-bar">
+      <div>
+        <h1>Request Logs</h1>
+        <span>最新 50 条请求 · 数据同步于 15 秒前</span>
+      </div>
+      <div class="top-actions">
+        <span>维护窗口：00:30 - 02:00（UTC+8）</span>
+        <button class="settings-button" type="button" aria-label="打开系统设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.06a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.06a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.06a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <nav class="nav-chips">
+      <a class="chip" href="#">MCP Servers</a>
+      <a class="chip" href="#">MCP App Integrations</a>
+      <a class="chip is-active" href="#">Request Logs</a>
+    </nav>
+  </header>
+  <main>
+    <section class="glass-card">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2>Request Logs</h2>
+          <span>Showing 1 - 50 of 370 items</span>
+        </div>
+        <div class="panel-actions">
+          <button class="action-button" type="button" aria-label="刷新日志">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+              <polyline points="21 3 21 9 15 9" />
+            </svg>
+          </button>
+          <button class="action-button" type="button" aria-label="下载日志">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+              <polyline points="7 11 12 16 17 11" />
+              <line x1="12" y1="4" x2="12" y2="16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="logs-table-wrapper">
+        <table class="logs-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Client</th>
+              <th>Server</th>
+              <th>Request Type</th>
+              <th>Status</th>
+              <th class="is-right">Processing Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>09-28 20:50:20</td>
+              <td>MCP Router UI</td>
+              <td>MCP Router Aggregator</td>
+              <td>StopServer</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">0ms</td>
+            </tr>
+            <tr>
+              <td>09-28 20:50:18</td>
+              <td>MCP Router UI</td>
+              <td>MCP Router Aggregator</td>
+              <td>StartServer</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">0ms</td>
+            </tr>
+            <tr>
+              <td>09-28 20:44:42</td>
+              <td>MCP Router UI</td>
+              <td>MCP Router Aggregator</td>
+              <td>StopServer</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">0ms</td>
+            </tr>
+            <tr>
+              <td>09-28 20:44:41</td>
+              <td>MCP Router UI</td>
+              <td>MCP Router Aggregator</td>
+              <td>StartServer</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">0ms</td>
+            </tr>
+            <tr>
+              <td>09-28 01:49:01</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">4ms</td>
+            </tr>
+            <tr>
+              <td>09-28 01:48:56</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">50ms</td>
+            </tr>
+            <tr>
+              <td>09-28 01:47:56</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">6ms</td>
+            </tr>
+            <tr>
+              <td>09-28 01:47:38</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">5ms</td>
+            </tr>
+            <tr>
+              <td>09-28 01:47:18</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">5ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:41:10</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">31ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:40:55</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">6ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:40:28</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">34ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:40:14</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">6ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:39:53</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">28ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:39:24</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">5ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:39:20</td>
+              <td>codex</td>
+              <td>serena</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">88ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:35:52</td>
+              <td>codex</td>
+              <td>context7</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">15ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:35:22</td>
+              <td>codex</td>
+              <td>context7</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">18ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:34:48</td>
+              <td>codex</td>
+              <td>context7</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">22ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:33:40</td>
+              <td>codex</td>
+              <td>ddg-search</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">11ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:33:05</td>
+              <td>codex</td>
+              <td>ddg-search</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">17ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:32:42</td>
+              <td>codex</td>
+              <td>mcp-deepwiki</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">24ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:32:10</td>
+              <td>codex</td>
+              <td>mcp-deepwiki</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">20ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:31:58</td>
+              <td>codex</td>
+              <td>playwright</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">9ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:31:33</td>
+              <td>codex</td>
+              <td>playwright</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">12ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:31:20</td>
+              <td>codex</td>
+              <td>sequential-thinking</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">16ms</td>
+            </tr>
+            <tr>
+              <td>09-28 00:31:02</td>
+              <td>codex</td>
+              <td>sequential-thinking</td>
+              <td>CallTool</td>
+              <td><span class="status-pill"><span class="dot"></span>Success</span></td>
+              <td class="is-right">14ms</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="logs-pagination">
+        <div class="pagination-buttons">
+          <button class="page-button is-disabled" type="button">上一页</button>
+          <button class="page-button" type="button">下一页</button>
+        </div>
+        <label class="page-size">
+          <span>每页</span>
+          <select>
+            <option selected>50 条</option>
+            <option>100 条</option>
+            <option>200 条</option>
+          </select>
+        </label>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page-note">请求日志支持分页与导出，沿用 MCP 控制台暗色主题便于统一巡检体验。</footer>
+</body>
+</html>

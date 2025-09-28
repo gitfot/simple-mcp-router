@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <title>MCP Router - 应用集成</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --background: #090a1a;
+      --surface: rgba(15, 23, 42, 0.72);
+      --surface-strong: rgba(24, 31, 61, 0.88);
+      --primary: #7c3aed;
+      --primary-soft: rgba(124, 58, 237, 0.22);
+      --accent: #22d3ee;
+      --text: #f4f5ff;
+      --muted: #a1a6c8;
+      --border: rgba(124, 58, 237, 0.18);
+      --warning: #fb7185;
+      --success: #34d399;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', sans-serif;
+      background: radial-gradient(circle at top right, rgba(124, 58, 237, 0.28), transparent 60%), var(--background);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 56px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    .top-bar h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.4px;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .top-actions span {
+      white-space: nowrap;
+    }
+    .settings-button {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(124, 58, 237, 0.4);
+      background: rgba(15, 23, 42, 0.65);
+      box-shadow: 0 16px 38px rgba(8, 12, 32, 0.45);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .settings-button:hover {
+      background: var(--primary);
+      border-color: transparent;
+      box-shadow: 0 18px 42px rgba(124, 58, 237, 0.55);
+      color: #fff;
+    }
+    .settings-button svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+    .nav-chips {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: rgba(15, 23, 42, 0.55);
+      padding: 14px 18px;
+      border-radius: 20px;
+      box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.24);
+      backdrop-filter: blur(18px);
+    }
+    .chip {
+      padding: 12px 18px;
+      border-radius: 14px;
+      text-decoration: none;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.6px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .chip:hover {
+      border-color: var(--primary-soft);
+      color: var(--text);
+    }
+    .chip.is-active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 16px 36px rgba(124, 58, 237, 0.55);
+    }
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .glass-card {
+      background: var(--surface);
+      border-radius: 22px;
+      padding: 26px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 18px 46px rgba(8, 12, 32, 0.55);
+      backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .search-field {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 18px;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.62);
+      border: 1px solid rgba(124, 58, 237, 0.22);
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.06);
+      flex: 1 1 320px;
+    }
+    .search-field svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      color: var(--muted);
+    }
+    .search-field input {
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+      width: 100%;
+      outline: none;
+    }
+    .search-field input::placeholder {
+      color: var(--muted);
+    }
+    .panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .action-button {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+    .action-button:hover {
+      color: var(--text);
+      border-color: var(--primary-soft);
+      box-shadow: 0 12px 28px rgba(8, 12, 32, 0.45);
+    }
+    .action-button.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 16px 34px rgba(124, 58, 237, 0.45);
+    }
+    .action-button svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+    .integration-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+    }
+    .integration-card {
+      background: var(--surface-strong);
+      border-radius: 18px;
+      padding: 18px 20px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
+    }
+    .integration-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .integration-info strong {
+      font-size: 16px;
+      letter-spacing: 0.4px;
+    }
+    .status-chip {
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: 0.4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+    }
+    .status-chip .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: currentColor;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.16);
+    }
+    .status-chip.is-online {
+      background: rgba(52, 211, 153, 0.18);
+      color: var(--success);
+    }
+    .status-chip.is-offline {
+      background: rgba(148, 163, 184, 0.18);
+    }
+    .integration-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 42px;
+      height: 22px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-switch span {
+      position: absolute;
+      inset: 0;
+      background: rgba(148, 163, 184, 0.45);
+      border-radius: 999px;
+      transition: all 0.2s ease;
+    }
+    .toggle-switch span::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      top: 2px;
+      left: 2px;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.45);
+      transition: all 0.2s ease;
+    }
+    .toggle-switch input:checked + span {
+      background: var(--primary);
+    }
+    .toggle-switch input:checked + span::after {
+      transform: translateX(20px);
+    }
+    .card-action {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--warning);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .card-action:hover {
+      border-color: rgba(251, 113, 133, 0.45);
+      background: rgba(251, 113, 133, 0.18);
+    }
+    .card-action svg {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+    }
+    .integration-desc {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.3px;
+    }
+    .integration-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .integration-footer strong {
+      margin-left: 4px;
+      color: var(--accent);
+    }
+    footer.page-note {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      letter-spacing: 0.6px;
+    }
+    @media (max-width: 900px) {
+      body {
+        padding: 32px 32px 40px;
+      }
+      .panel-header {
+        align-items: stretch;
+      }
+      .panel-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+    @media (max-width: 640px) {
+      body {
+        padding: 28px 20px 36px;
+      }
+      .nav-chips {
+        justify-content: flex-start;
+        padding: 12px 14px;
+      }
+      .panel-actions {
+        justify-content: flex-start;
+      }
+      .search-field {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 简洁集成网格视图 -->
+  <header>
+    <div class="top-bar">
+      <div>
+        <h1>MCP App Integrations</h1>
+        <span>共 6 个集成 · 上次同步 24 秒前</span>
+      </div>
+      <div class="top-actions">
+        <span>维护窗口：02:00 - 03:00（UTC+8）</span>
+        <button class="settings-button" type="button" aria-label="打开系统设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.06a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.06a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.06a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <nav class="nav-chips">
+      <a class="chip" href="#">MCP Servers</a>
+      <a class="chip is-active" href="#">MCP App Integrations</a>
+      <a class="chip" href="#">Request Logs</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="glass-card">
+      <div class="panel-header">
+        <label class="search-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="6" />
+            <line x1="16.5" y1="16.5" x2="21" y2="21" />
+          </svg>
+          <input type="search" placeholder="搜索应用集成…">
+        </label>
+        <div class="panel-actions">
+          <button class="action-button" type="button" aria-label="刷新集成状态">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+              <polyline points="21 3 21 9 15 9" />
+            </svg>
+          </button>
+          <button class="action-button" type="button" aria-label="复制连接链接">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          </button>
+          <button class="action-button primary" type="button" aria-label="新增集成">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="integration-grid">
+        <article class="integration-card">
+          <div class="integration-header">
+            <div class="integration-info">
+              <strong>Slack</strong>
+              <span class="status-chip is-online"><span class="dot"></span>Connected</span>
+            </div>
+            <div class="integration-actions">
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <span></span>
+              </label>
+              <button class="card-action" type="button" aria-label="删除 Slack 集成">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="integration-desc">告警通道：#mcp-alerts</p>
+          <div class="integration-footer">
+            <span>今日推送<strong>46</strong>条</span>
+            <span>延迟<strong>312ms</strong></span>
+          </div>
+        </article>
+
+        <article class="integration-card">
+          <div class="integration-header">
+            <div class="integration-info">
+              <strong>Linear</strong>
+              <span class="status-chip is-online"><span class="dot"></span>Connected</span>
+            </div>
+            <div class="integration-actions">
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <span></span>
+              </label>
+              <button class="card-action" type="button" aria-label="删除 Linear 集成">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="integration-desc">工单同步至 Feature Board</p>
+          <div class="integration-footer">
+            <span>今日创建<strong>18</strong>个</span>
+            <span>延迟<strong>268ms</strong></span>
+          </div>
+        </article>
+
+        <article class="integration-card">
+          <div class="integration-header">
+            <div class="integration-info">
+              <strong>GitHub</strong>
+              <span class="status-chip is-online"><span class="dot"></span>Connected</span>
+            </div>
+            <div class="integration-actions">
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <span></span>
+              </label>
+              <button class="card-action" type="button" aria-label="删除 GitHub 集成">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="integration-desc">检视 simple-mcp-router PR</p>
+          <div class="integration-footer">
+            <span>已检查<strong>12</strong>个</span>
+            <span>延迟<strong>194ms</strong></span>
+          </div>
+        </article>
+
+        <article class="integration-card">
+          <div class="integration-header">
+            <div class="integration-info">
+              <strong>PagerDuty</strong>
+              <span class="status-chip is-offline"><span class="dot"></span>Standby</span>
+            </div>
+            <div class="integration-actions">
+              <label class="toggle-switch">
+                <input type="checkbox">
+                <span></span>
+              </label>
+              <button class="card-action" type="button" aria-label="删除 PagerDuty 集成">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="integration-desc">值班策略：Platform Oncall</p>
+          <div class="integration-footer">
+            <span>今日告警<strong>5</strong>条</span>
+            <span>延迟<strong>640ms</strong></span>
+          </div>
+        </article>
+
+        <article class="integration-card">
+          <div class="integration-header">
+            <div class="integration-info">
+              <strong>Notion</strong>
+              <span class="status-chip is-offline"><span class="dot"></span>Reauth</span>
+            </div>
+            <div class="integration-actions">
+              <label class="toggle-switch">
+                <input type="checkbox">
+                <span></span>
+              </label>
+              <button class="card-action" type="button" aria-label="删除 Notion 集成">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="integration-desc">知识库凭证待更新</p>
+          <div class="integration-footer">
+            <span>待处理<strong>12</strong>篇</span>
+            <span>延迟<strong>—</strong></span>
+          </div>
+        </article>
+
+        <article class="integration-card">
+          <div class="integration-header">
+            <div class="integration-info">
+              <strong>Salesforce</strong>
+              <span class="status-chip is-online"><span class="dot"></span>Connected</span>
+            </div>
+            <div class="integration-actions">
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <span></span>
+              </label>
+              <button class="card-action" type="button" aria-label="删除 Salesforce 集成">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="integration-desc">同步线索与联系人</p>
+          <div class="integration-footer">
+            <span>今日推送<strong>62</strong>条</span>
+            <span>延迟<strong>388ms</strong></span>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page-note">应用集成列表遵循 MCP 控制台暗色风格，强调运行状态、启停控制与核心指标。</footer>
+</body>
+</html>
