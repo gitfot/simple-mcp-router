@@ -7,11 +7,10 @@ import type {
   AuthAPI,
   ServerAPI,
   AppAPI,
-  PackageAPI,
+  SystemAPI,
   SettingsAPI,
   LogAPI,
   WorkspaceAPI,
-  WorkflowAPI,
   Workspace,
 } from "@mcp_router/shared";
 
@@ -20,11 +19,10 @@ class ElectronPlatformAPI implements PlatformAPI {
   auth: AuthAPI;
   servers: ServerAPI;
   apps: AppAPI;
-  packages: PackageAPI;
+  system: SystemAPI;
   settings: SettingsAPI;
   logs: LogAPI;
   workspaces: WorkspaceAPI;
-  workflows: WorkflowAPI;
 
   constructor() {
     // Initialize auth domain
@@ -94,26 +92,16 @@ class ElectronPlatformAPI implements PlatformAPI {
       },
     };
 
-    // Initialize packages domain (with system utilities)
-    this.packages = {
-      checkManagers: () => window.electronAPI.checkPackageManagers(),
-      installManagers: () => window.electronAPI.installPackageManagers(),
-
-      // System utilities
-      system: {
-        getPlatform: () => window.electronAPI.getPlatform(),
-        checkCommand: (command) =>
-          window.electronAPI.checkCommandExists(command),
-        restartApp: () => window.electronAPI.restartApp(),
-        onProtocolUrl: (callback) => window.electronAPI.onProtocolUrl(callback),
-      },
+    // Initialize system domain
+    this.system = {
+      getPlatform: () => window.electronAPI.getPlatform(),
+      onProtocolUrl: (callback) => window.electronAPI.onProtocolUrl(callback),
     };
 
     // Initialize settings domain
     this.settings = {
       get: () => window.electronAPI.getSettings(),
       save: (settings) => window.electronAPI.saveSettings(settings),
-      submitFeedback: (feedback) => window.electronAPI.submitFeedback(feedback),
     };
 
     // Initialize logs domain
@@ -154,38 +142,6 @@ class ElectronPlatformAPI implements PlatformAPI {
       getActive: () => window.electronAPI.getCurrentWorkspace(),
     };
 
-    // Initialize workflows domain (with hook modules)
-    this.workflows = {
-      // Workflow operations
-      workflows: {
-        list: () => window.electronAPI.listWorkflows(),
-        get: (id) => window.electronAPI.getWorkflow(id),
-        create: (workflow) => window.electronAPI.createWorkflow(workflow),
-        update: (id, updates) => window.electronAPI.updateWorkflow(id, updates),
-        delete: (id) => window.electronAPI.deleteWorkflow(id),
-        setActive: (id) => window.electronAPI.setActiveWorkflow(id),
-        disable: (id) => window.electronAPI.disableWorkflow(id),
-        execute: (id, context) =>
-          window.electronAPI.executeWorkflow(id, context),
-        listEnabled: () => window.electronAPI.getEnabledWorkflows(),
-        listByType: (workflowType) =>
-          window.electronAPI.getWorkflowsByType(workflowType),
-      },
-
-      // Hook Module operations
-      hooks: {
-        list: () => window.electronAPI.listHookModules(),
-        get: (id) => window.electronAPI.getHookModule(id),
-        create: (module) => window.electronAPI.createHookModule(module),
-        update: (id, updates) =>
-          window.electronAPI.updateHookModule(id, updates),
-        delete: (id) => window.electronAPI.deleteHookModule(id),
-        execute: (id, context) =>
-          window.electronAPI.executeHookModule(id, context),
-        import: (module) => window.electronAPI.importHookModule(module),
-        validate: (script) => window.electronAPI.validateHookScript(script),
-      },
-    };
   }
 }
 

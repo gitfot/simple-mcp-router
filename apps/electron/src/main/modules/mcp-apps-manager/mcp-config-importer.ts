@@ -10,7 +10,6 @@ import {
   exists,
 } from "./mcp-apps-manager.service";
 import { v4 as uuidv4 } from "uuid";
-import { getSettingsService } from "@/main/modules/settings/settings.service";
 
 /**
  * Sync server configurations from a provided list of configs
@@ -24,14 +23,6 @@ export async function syncServersFromClientConfig(
   }
 
   try {
-    // Check if external MCP configs loading is enabled
-    const settingsService = getSettingsService();
-    const settings = await settingsService.getSettings();
-
-    if (settings.loadExternalMCPConfigs === false) {
-      return;
-    }
-
     // 既存のサーバを取得して重複を避ける
     const serverService = getServerService();
     const existingServers = serverService.getAllServers();
@@ -65,14 +56,6 @@ export async function syncServersFromClientConfig(
  */
 export async function importExistingServerConfigurations(): Promise<void> {
   try {
-    // Check if external MCP configs loading is enabled
-    const settingsService = getSettingsService();
-    const settings = await settingsService.getSettings();
-
-    if (settings.loadExternalMCPConfigs === false) {
-      return;
-    }
-
     console.log(
       "Checking for existing MCP server configurations in client apps...",
     );

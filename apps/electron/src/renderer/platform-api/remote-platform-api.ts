@@ -193,8 +193,8 @@ export class RemotePlatformAPI implements PlatformAPI {
     return this.localPlatformAPI.auth;
   }
 
-  get packages() {
-    return this.localPlatformAPI.packages;
+  get system() {
+    return this.localPlatformAPI.system;
   }
 
   get settings() {
@@ -203,9 +203,5 @@ export class RemotePlatformAPI implements PlatformAPI {
 
   get workspaces() {
     return this.localPlatformAPI.workspaces;
-  }
-
-  get workflows() {
-    return this.localPlatformAPI.workflows;
   }
 }

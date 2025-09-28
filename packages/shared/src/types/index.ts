@@ -25,8 +25,8 @@ export {
   CreateServerInput,
   // App API
   AppAPI,
-  // Package API
-  PackageAPI,
+  // System API
+  SystemAPI,
   // Settings API
   SettingsAPI,
   // Log API
@@ -35,8 +35,6 @@ export {
   LogQueryResult,
   // Workspace API
   WorkspaceAPI,
-  // Workflow API
-  WorkflowAPI,
   // Main Platform API
   PlatformAPI,
 } from "./platform-api";
@@ -45,4 +43,3 @@ export * from "./mcp-apps";
 export * from "./utils";
 export * from "./cli";
 export * from "./chat-types";
-export * from "./workflow-types";

@@ -17,7 +17,6 @@ import {
 } from "../stores";
 import { usePlatformAPI } from "@/renderer/platform-api";
 import { IconProgress } from "@tabler/icons-react";
-import { postHogService } from "../services/posthog-service";
 import WorkspaceManagement from "./workspace/WorkspaceManagement";
 
 // Main App component
@@ -45,11 +44,6 @@ const App: React.FC = () => {
         await checkAuthStatus();
 
         // Initialize PostHog after getting settings
-        const settings = await platformAPI.settings.get();
-        postHogService.initialize({
-          analyticsEnabled: settings.analyticsEnabled ?? true,
-          userId: settings.userId,
-        });
       } catch (error) {
         console.error("Failed to initialize app:", error);
       } finally {
@@ -64,20 +58,10 @@ const App: React.FC = () => {
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges();
 
-    // Also subscribe to auth changes for PostHog
-    const authUnsubscribe = platformAPI.auth.onChange(async (status) => {
-      const settings = await platformAPI.settings.get();
-      postHogService.updateConfig({
-        analyticsEnabled: settings.analyticsEnabled ?? true,
-        userId: status.authenticated ? status.userId : undefined,
-      });
-    });
-
     return () => {
       unsubscribe();
-      authUnsubscribe();
     };
-  }, [subscribeToAuthChanges, platformAPI]);
+  }, [subscribeToAuthChanges]);
 
   // Handle protocol URL processing
   const handleProtocolUrl = useCallback(
@@ -104,7 +88,7 @@ const App: React.FC = () => {
 
   // Subscribe to protocol URL events
   useEffect(() => {
-    const unsubscribe = platformAPI.packages.system.onProtocolUrl((url) => {
+    const unsubscribe = platformAPI.system.onProtocolUrl((url) => {
       handleProtocolUrl(url);
     });
 

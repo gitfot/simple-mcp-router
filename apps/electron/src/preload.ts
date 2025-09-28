@@ -62,20 +62,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   unifyAppConfig: (appName: string) =>
     ipcRenderer.invoke("mcp-apps:unify", appName),
 
-  // Command check
-  checkCommandExists: (command: string) =>
-    ipcRenderer.invoke("system:commandExists", command),
-
-  // Feedback
-  submitFeedback: (feedback: string) =>
-    ipcRenderer.invoke("system:submitFeedback", feedback),
-
-  // Package Manager Management
-  checkPackageManagers: () => ipcRenderer.invoke("packageManager:checkAll"),
-  installPackageManagers: () => ipcRenderer.invoke("packageManager:installAll"),
-  restartApp: () => ipcRenderer.invoke("system:restartApp"),
-
-  // Protocol URL handling
+  // System utilities
+  getPlatform: () => ipcRenderer.invoke("system:getPlatform"),
   onProtocolUrl: (callback: (url: string) => void) => {
     const listener = (_: any, url: string) => callback(url);
     ipcRenderer.on("protocol:url", listener);
@@ -83,9 +71,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.removeListener("protocol:url", listener);
     };
   },
-
-  // System
-  getPlatform: () => ipcRenderer.invoke("system:getPlatform"),
 
   // Workspace Management
   listWorkspaces: () => ipcRenderer.invoke("workspace:list"),
@@ -96,39 +81,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   deleteWorkspace: (id: string) => ipcRenderer.invoke("workspace:delete", id),
   switchWorkspace: (id: string) => ipcRenderer.invoke("workspace:switch", id),
   getCurrentWorkspace: () => ipcRenderer.invoke("workspace:current"),
-
-  // Workflow Management
-  listWorkflows: () => ipcRenderer.invoke("workflow:list"),
-  getWorkflow: (id: string) => ipcRenderer.invoke("workflow:get", id),
-  createWorkflow: (workflow: any) =>
-    ipcRenderer.invoke("workflow:create", workflow),
-  updateWorkflow: (id: string, updates: any) =>
-    ipcRenderer.invoke("workflow:update", id, updates),
-  deleteWorkflow: (id: string) => ipcRenderer.invoke("workflow:delete", id),
-  setActiveWorkflow: (id: string) =>
-    ipcRenderer.invoke("workflow:setActive", id),
-  disableWorkflow: (id: string) => ipcRenderer.invoke("workflow:disable", id),
-  executeWorkflow: (id: string, context?: any) =>
-    ipcRenderer.invoke("workflow:execute", id, context),
-  getEnabledWorkflows: () => ipcRenderer.invoke("workflow:listEnabled"),
-  getWorkflowsByType: (workflowType: string) =>
-    ipcRenderer.invoke("workflow:listByType", workflowType),
-
-  // Hook Module Management
-  listHookModules: () => ipcRenderer.invoke("hook-module:list"),
-  getHookModule: (id: string) => ipcRenderer.invoke("hook-module:get", id),
-  createHookModule: (module: any) =>
-    ipcRenderer.invoke("hook-module:create", module),
-  updateHookModule: (id: string, updates: any) =>
-    ipcRenderer.invoke("hook-module:update", id, updates),
-  deleteHookModule: (id: string) =>
-    ipcRenderer.invoke("hook-module:delete", id),
-  executeHookModule: (id: string, context: any) =>
-    ipcRenderer.invoke("hook-module:execute", id, context),
-  importHookModule: (module: any) =>
-    ipcRenderer.invoke("hook-module:import", module),
-  validateHookScript: (script: string) =>
-    ipcRenderer.invoke("hook-module:validate", script),
 
   getWorkspaceCredentials: (id: string) =>
     ipcRenderer.invoke("workspace:get-credentials", id),

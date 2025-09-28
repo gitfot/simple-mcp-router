@@ -16,8 +16,11 @@ export function TitleBar() {
   }, [loadWorkspaces]);
 
   useEffect(() => {
-    // プラットフォーム情報の取得
-    platformAPI.packages.system.getPlatform().then(setPlatform);
+    platformAPI.system.getPlatform().then((value) => {
+      if (value === "win32" || value === "linux" || value === "darwin") {
+        setPlatform(value);
+      }
+    });
   }, [platformAPI]);
 
   return (

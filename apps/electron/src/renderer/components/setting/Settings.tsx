@@ -10,20 +10,14 @@ import {
 } from "@mcp_router/ui";
 import { Button } from "@mcp_router/ui";
 import { Badge } from "@mcp_router/ui";
-import { Switch } from "@mcp_router/ui";
 import { useThemeStore } from "@/renderer/stores";
 import { useAuthStore } from "../../stores";
 import { IconBrandDiscord } from "@tabler/icons-react";
 import { electronPlatformAPI as platformAPI } from "../../platform-api/electron-platform-api";
-import { postHogService } from "../../services/posthog-service";
 
 const Settings: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [isRefreshingCredits, setIsRefreshingCredits] = useState(false);
-  const [loadExternalMCPConfigs, setLoadExternalMCPConfigs] =
-    useState<boolean>(true);
-  const [analyticsEnabled, setAnalyticsEnabled] = useState<boolean>(true);
-  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   // Zustand stores
   const { theme, setTheme } = useThemeStore();
@@ -62,21 +56,6 @@ const Settings: React.FC = () => {
       unsubscribe();
     };
   }, [checkAuthStatus, subscribeToAuthChanges]);
-
-  // Load settings on mount
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const settings = await platformAPI.settings.get();
-        setLoadExternalMCPConfigs(settings.loadExternalMCPConfigs ?? true);
-        setAnalyticsEnabled(settings.analyticsEnabled ?? true);
-      } catch {
-        // Ignore error and use default value
-        console.log("Failed to load settings, using defaults");
-      }
-    };
-    loadSettings();
-  }, []);
 
   // Settingsページ表示時にクレジット残高を更新
   useEffect(() => {
@@ -121,52 +100,6 @@ const Settings: React.FC = () => {
       console.error("クレジット残高の更新に失敗しました:", error);
     } finally {
       setIsRefreshingCredits(false);
-    }
-  };
-
-  // Handle external MCP configs toggle
-  const handleExternalMCPConfigsToggle = async (checked: boolean) => {
-    setLoadExternalMCPConfigs(checked);
-    setIsSavingSettings(true);
-
-    try {
-      const currentSettings = await platformAPI.settings.get();
-      await platformAPI.settings.save({
-        ...currentSettings,
-        loadExternalMCPConfigs: checked,
-      });
-    } catch (error) {
-      console.error("Failed to save settings:", error);
-      // Revert on error
-      setLoadExternalMCPConfigs(!checked);
-    } finally {
-      setIsSavingSettings(false);
-    }
-  };
-
-  // Handle analytics toggle
-  const handleAnalyticsToggle = async (checked: boolean) => {
-    setAnalyticsEnabled(checked);
-    setIsSavingSettings(true);
-
-    try {
-      const currentSettings = await platformAPI.settings.get();
-      await platformAPI.settings.save({
-        ...currentSettings,
-        analyticsEnabled: checked,
-      });
-
-      // Update PostHog service
-      postHogService.updateConfig({
-        analyticsEnabled: checked,
-        userId: currentSettings.userId,
-      });
-    } catch (error) {
-      console.error("Failed to save analytics settings:", error);
-      // Revert on error
-      setAnalyticsEnabled(!checked);
-    } finally {
-      setIsSavingSettings(false);
     }
   };
 
@@ -380,44 +313,6 @@ const Settings: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* External Applications Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">{t("settings.advanced")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <label className="text-sm font-medium">
-                {t("settings.loadExternalMCPConfigs")}
-              </label>
-              <p className="text-xs text-muted-foreground">
-                {t("settings.loadExternalMCPConfigsDescription")}
-              </p>
-            </div>
-            <Switch
-              checked={loadExternalMCPConfigs}
-              onCheckedChange={handleExternalMCPConfigsToggle}
-              disabled={isSavingSettings}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <label className="text-sm font-medium">
-                {t("settings.analytics")}
-              </label>
-              <p className="text-xs text-muted-foreground">
-                {t("settings.analyticsDescription")}
-              </p>
-            </div>
-            <Switch
-              checked={analyticsEnabled}
-              onCheckedChange={handleAnalyticsToggle}
-              disabled={isSavingSettings}
-            />
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

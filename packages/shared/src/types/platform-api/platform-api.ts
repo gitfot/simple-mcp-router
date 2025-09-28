@@ -5,11 +5,10 @@
 import { AuthAPI } from "./domains/auth-api";
 import { ServerAPI } from "./domains/server-api";
 import { AppAPI } from "./domains/app-api";
-import { PackageAPI } from "./domains/package-api";
+import { SystemAPI } from "./domains/system-api";
 import { SettingsAPI } from "./domains/settings-api";
 import { LogAPI } from "./domains/log-api";
 import { WorkspaceAPI } from "./domains/workspace-api";
-import { WorkflowAPI } from "./domains/workflow-api";
 
 /**
  * Main Platform API interface with domain-driven structure
@@ -25,9 +24,6 @@ export interface PlatformAPI {
   // Application management domain (includes token management)
   apps: AppAPI;
 
-  // Package management domain (includes system utilities)
-  packages: PackageAPI;
-
   // Settings management domain
   settings: SettingsAPI;
 
@@ -37,6 +33,6 @@ export interface PlatformAPI {
   // Workspace management domain
   workspaces: WorkspaceAPI;
 
-  // Workflow and Hook Module management domain
-  workflows: WorkflowAPI;
+  // System utilities domain
+  system: SystemAPI;
 }
