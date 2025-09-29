@@ -262,11 +262,11 @@ const McpAppsManager: React.FC = () => {
 
       {/* カスタムアプリ追加フォーム */}
       <Card className="mb-4">
-        <CardHeader>
+        <CardHeader className="p-4 pb-2">
           <CardTitle>{t("mcpApps.addCustomApp")}</CardTitle>
           <CardDescription>{t("mcpApps.customAppDescription")}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 pt-0">
           <form onSubmit={handleAddCustomApp} className="flex gap-4 items-end">
             <div className="flex-1">
               <Input
@@ -284,11 +284,11 @@ const McpAppsManager: React.FC = () => {
       {loading ? (
         <></>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {apps.map((app) => {
             return (
               <Card key={app.name} className="overflow-hidden">
-                <CardHeader>
+                <CardHeader className="space-y-1 p-4 pb-2">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-2">
                       {/* Display icon if available from backend */}
@@ -316,18 +316,18 @@ const McpAppsManager: React.FC = () => {
                   </div>
                   <CardDescription></CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 pt-0">
                   <div className="space-y-2">
                     <p className="text-sm break-words">
                       {app.configured
                         ? t("mcpApps.configured")
                         : app.installed
                           ? t("mcpApps.notConfigured")
-                          : t("mcpApps.installRequired")}
+                      : t("mcpApps.installRequired")}
                     </p>
                   </div>
                 </CardContent>
-                <CardFooter className="flex gap-2 justify-between flex-wrap">
+                <CardFooter className="flex gap-2 justify-between flex-wrap p-4 pt-0">
                   <div>
                     {/* Add How To Use and Delete buttons to the left of the card footer */}
                     <div className="flex gap-2 flex-wrap">

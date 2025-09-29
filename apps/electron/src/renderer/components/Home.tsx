@@ -7,9 +7,9 @@ import {
   IconServer,
   IconPlus,
   IconRefresh,
+  IconDownload,
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import { Share } from "lucide-react";
 import { toast } from "sonner";
 import {
   useServerStore,
@@ -183,7 +183,7 @@ const Home: React.FC = () => {
           className="gap-1"
           title={"Export Servers"}
         >
-          <Share className="h-4 w-4" />
+          <IconDownload className="h-4 w-4" />
         </Button>
         <Button asChild variant="outline" size="sm" className="gap-1">
           <Link to="/servers/add">
