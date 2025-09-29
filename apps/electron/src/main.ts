@@ -80,6 +80,7 @@ const createWindow = () => {
     title: "MCP Router",
     icon: path.join(__dirname, "assets/icon.png"),
     autoHideMenuBar: true,
+    backgroundColor: "#ffffff",
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       contextIsolation: true,
@@ -97,6 +98,9 @@ const createWindow = () => {
     // Windows: use titleBarOverlay for custom title bar
     windowOptions.titleBarStyle = "hidden";
     windowOptions.titleBarOverlay = {
+      // Align overlay tint with renderer background to avoid mismatched title bar color
+      color: "#ffffff",
+      symbolColor: "#1f2937",
       height: 50,
     };
   } else {
