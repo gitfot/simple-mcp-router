@@ -19,6 +19,7 @@ import {
   HardDrive,
   Globe,
   FileCode2,
+  FileUp,
 } from "lucide-react";
 import {
   validateMcpServerJson,
@@ -51,6 +52,8 @@ const Manual: React.FC = () => {
   const [isLoadingJson, setIsLoadingJson] = useState(false);
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [importedServers, setImportedServers] = useState<any>(null);
+  const [jsonFileName, setJsonFileName] = useState<string | null>(null);
+  const jsonUploadInputRef = useRef<HTMLInputElement>(null);
 
   // Manual Configuration State
   const [serverName, setServerName] = useState("");
@@ -172,6 +175,7 @@ const Manual: React.FC = () => {
 
       // Set imported servers first for display
       setImportedServers(jsonConfig);
+      setJsonFileName(null);
 
       // Extract server configurations - either from mcpServers or directly from root
       const serverConfigs = jsonConfig.mcpServers || jsonConfig;
@@ -250,6 +254,32 @@ const Manual: React.FC = () => {
     setImportedServers(null);
     setJsonInput("");
     setJsonError(null);
+    setJsonFileName(null);
+    if (jsonUploadInputRef.current) {
+      jsonUploadInputRef.current.value = "";
+    }
+  };
+
+  const handleJsonFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = typeof reader.result === "string" ? reader.result : "";
+      setJsonInput(text);
+      setJsonError(null);
+      setImportedServers(null);
+      setJsonFileName(file.name);
+    };
+    reader.onerror = () => {
+      setJsonError(t("importFromJson.errorUnknown"));
+      toast.error(t("importFromJson.errorFailedImport"));
+    };
+    reader.readAsText(file);
+    event.target.value = "";
   };
 
   const resetForm = () => {
@@ -503,11 +533,36 @@ const Manual: React.FC = () => {
                   </div>
                 ) : (
                   <>
+                    <div className="flex items-center justify-between gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => jsonUploadInputRef.current?.click()}
+                      >
+                        <FileUp className="h-4 w-4" />
+                        {t("serverDetails.selectFile")}
+                      </Button>
+                      {jsonFileName && (
+                        <span className="text-xs text-muted-foreground truncate max-w-[60%]">
+                          {jsonFileName}
+                        </span>
+                      )}
+                    </div>
+                    <input
+                      ref={jsonUploadInputRef}
+                      type="file"
+                      accept=".json,.txt,application/json,text/plain"
+                      className="hidden"
+                      onChange={handleJsonFileChange}
+                    />
                     <Textarea
                       value={jsonInput}
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                         setJsonInput(e.target.value);
                         setJsonError(null);
+                        setJsonFileName(null);
                       }}
                       placeholder={`{
   "mcpServers": {
