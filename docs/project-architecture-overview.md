@@ -1,7 +1,7 @@
 ﻿# MCP Router 功能架构总览
 
 ## 项目概述
-MCP Router 是一款基于 Electron 的桌面端工具，专注于本地与远程 MCP 服务器的统一管理。应用由 Node 主进程与 React 渲染层组成，通过平台 API 在两端共享类型与调用约定，提供服务器启停、远程连接、令牌管理以及请求日志观测等核心能力。仓库采用 pnpm monorepo，公共类型沉淀在 `packages/shared`，UI 组件封装在 `packages/ui`，并借助 TurboRepo 统一构建流水线。
+MCP Router 是一款基于 Electron 的桌面端工具，专注于本地与远程 MCP 服务的统一管理。应用由 Node 主进程与 React 渲染层组成，通过平台 API 在两端共享类型与调用约定，提供服务器启停、远程连接、令牌管理以及请求日志观测等核心能力。仓库采用 pnpm monorepo，公共类型沉淀在 `packages/shared`，UI 组件封装在 `packages/ui`，并借助 TurboRepo 统一构建流水线。
 
 ## 分层结构总览
 应用沿用“三层 + 平台抽象”结构：
@@ -16,7 +16,7 @@ MCP Router 是一款基于 Electron 的桌面端工具，专注于本地与远�
 
 ### MCP Server Manager
 - 位置：`main/modules/mcp-server-manager`
-- 职责：集中管理 MCP 服务器配置、启动/停止状态与自动拉起策略；与 `server-service` 协作持久化配置并推送状态更新。
+- 职责：集中管理 MCP 服务配置、启动/停止状态与自动拉起策略；与 `server-service` 协作持久化配置并推送状态更新。
 
 ### MCP Server Runtime
 - 位置：`main/modules/mcp-server-runtime`
@@ -62,7 +62,7 @@ MCP Router 是一款基于 Electron 的桌面端工具，专注于本地与远�
 - `packages/remote-api-types`：导出远程控制台所需的 API 类型与工具方法。
 
 ## 典型功能流程
-1. **新增 MCP 服务器**：渲染层调用 Platform API `servers.create` → 主进程 `MCPServerManager.addServer` 持久化 → 按配置自动启动并通过 Logger 注册事件流。
+1. **新增 MCP 服务**：渲染层调用 Platform API `servers.create` → 主进程 `MCPServerManager.addServer` 持久化 → 按配置自动启动并通过 Logger 注册事件流。
 2. **配置 MCP App 集成**：渲染层创建或导入应用 → `MCPAppsManager` 生成令牌并绑定服务器 → 在客户端中使用生成的 URL/Token 完成集成。
 3. **查看请求日志**：渲染层调用 Platform API `logs.query` → 主进程 `MCPLogger` 读取本地索引 → 前端按时间轴/分页展示并支持过滤。
 

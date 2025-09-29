@@ -47,7 +47,7 @@
 ```
 packages/shared/src/types/
 ├── domains/          # 领域实体
-│   ├── mcp.ts       # MCP 服务器、工具、资源类型
+│   ├── mcp.ts       # MCP 服务、工具、资源类型
 │   ├── agent.ts     # Agent 配置类型
 │   ├── auth.service.ts      # 认证相关类型
 │   └── workspace.ts # 工作区类型

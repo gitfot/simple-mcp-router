@@ -73,10 +73,10 @@ let mcpHttpServer: MCPHttpServer | null = null;
 const createWindow = () => {
   // Platform-specific window options
   const windowOptions: Electron.BrowserWindowConstructorOptions = {
-    width: 1200,
-    height: 800,
-    minWidth: 800,
-    minHeight: 600,
+    width: 950,
+    height: 650,
+    minWidth: 600,
+    minHeight: 400,
     title: "MCP Router",
     icon: path.join(__dirname, "assets/icon.png"),
     autoHideMenuBar: true,
