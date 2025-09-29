@@ -120,7 +120,11 @@ const App: React.FC = () => {
   // Login is now optional - user can access app without authentication
 
   return (
-    <SidebarProvider defaultOpen={true} className="h-full">
+    <SidebarProvider
+      defaultOpen={true}
+      className="h-full"
+      style={{ "--sidebar-width": "13rem" } as React.CSSProperties}
+    >
       <Sonner />
 
       <SidebarComponent />
